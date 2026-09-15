@@ -21,6 +21,7 @@ files = [
     ("result/eval_en.csv", "English"),
     ("result/eval_hi.csv", "Hindi"),
     ("result/eval_ne.csv", "Nepali"),
+    ("result/eval_ru.csv", "Russian"),
 ]
 
 df = pd.concat([load(path, lang) for path, lang in files])

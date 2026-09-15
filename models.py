@@ -1,11 +1,10 @@
 import re
-from mlx_lm import load, generate
+import requests
 
-MODEL_ID = "mlx-community/Qwen3-8B-4bit"
+MODEL_ID = "llama3"
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
 _THINK_BLOCK = re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL)
-
-_model, _tokenizer = load(MODEL_ID)
 
 
 def _parse(full_response):
@@ -27,12 +26,22 @@ def _parse(full_response):
 
 
 def query_model(prompt, max_new_tokens=220):
-    messages = [{"role": "user", "content": prompt}]
-    text = _tokenizer.apply_chat_template(
-        messages, add_generation_prompt=True, enable_thinking=False
-    )
+    data = {
+        "model": MODEL_ID,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "num_predict": max_new_tokens,
+        },
+    }
 
-    raw = generate(_model, _tokenizer, prompt=text, max_tokens=max_new_tokens, verbose=False).strip()
+    response = requests.post(OLLAMA_URL, json=data)
+
+    if response.status_code != 200:
+        return f"Error: {response.status_code}", None, None
+
+    result = response.json()
+    raw = result.get("response", "").strip()
     full_response = _THINK_BLOCK.sub("", raw).strip()
     score, justification = _parse(full_response)
 
