@@ -9,3 +9,5 @@ sentencepiece
 safetensors
 tqdm
 numpy
+requests
+python-dotenv

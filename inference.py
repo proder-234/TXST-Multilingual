@@ -1,18 +1,26 @@
 import argparse
 import csv
+import traceback
 
 from prompt import LANG_COL, generate_prompt
 from models import query_model
 
 LANG_NAME = {"en": "English", "hi": "Hindi", "ne": "Nepali"}
 
+# Devanagari costs many more tokens on Mistral, so give hi/ne more room
+MAX_NEW_TOKENS = {"en": 220, "hi": 400, "ne": 400}
+
 
 def run(input_csv, output_csv, lang):
     text_col = LANG_COL[lang]
     target_language = LANG_NAME[lang]
+    max_new_tokens = MAX_NEW_TOKENS.get(lang, 220)
 
     with open(input_csv, newline="", encoding="utf-8") as f_in:
         rows = list(csv.DictReader(f_in))
+
+    unparsed = 0
+    errors = 0
 
     with open(output_csv, "w", newline="", encoding="utf-8") as f_out:
         writer = csv.DictWriter(f_out, fieldnames=["input_id", "output"])
@@ -23,7 +31,33 @@ def run(input_csv, output_csv, lang):
             prompt = generate_prompt(scenario, target_language)
 
             print(f"[{i}/{len(rows)}] generating...", end=" ", flush=True)
-            full_response, score, justification = query_model(prompt)
+
+            try:
+                full_response, score, justification = query_model(
+                    prompt, max_new_tokens=max_new_tokens
+                )
+            except Exception as e:
+                errors += 1
+                print(f"[!] query_model raised an exception: {e!r}")
+                traceback.print_exc()
+                # placeholder row so the CSV stays aligned, then keep going
+                writer.writerow({
+                    "input_id": row["input_id"],
+                    "output": f"input: {scenario}\nresponse: ERROR\njustification: {e!r}",
+                })
+                f_out.flush()
+                continue
+
+            # query_model catches generate() errors and returns them as text
+            if full_response.startswith("Error:"):
+                errors += 1
+                print(f"[!] {full_response}")
+                writer.writerow({
+                    "input_id": row["input_id"],
+                    "output": f"input: {scenario}\nresponse: ERROR\njustification: {full_response}",
+                })
+                f_out.flush()
+                continue
 
             writer.writerow({
                 "input_id": row["input_id"],
@@ -31,12 +65,18 @@ def run(input_csv, output_csv, lang):
             })
             f_out.flush()
 
-            print(f"response={score}" if score is not None else "[!] could not parse a clean 0/1 response")
+            if score is not None:
+                print(f"response={score}")
+            else:
+                unparsed += 1
+                print("[!] could not parse a clean 0/1 response")
+
+    print(f"Total: {len(rows)} | Errors: {errors} | Unparsed: {unparsed}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_csv", default="ethics_translated.csv")
+    parser.add_argument("--input_csv", default="result/ethics_translated.csv")
     parser.add_argument("--output_csv", default=None)
     parser.add_argument("--lang", default="hi", choices=list(LANG_COL.keys()))
     args = parser.parse_args()
