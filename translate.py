@@ -90,7 +90,7 @@ def translate_batch(batch, src_lang, tgt_lang):
 def translate_multi(texts, src_lang, tgt_langs, batch_size=8):
     """
     tgt_langs: dict of {output_key: nllb_lang_code}, e.g.
-        {"hi_text": "hin_Deva", "ne_text": "npi_Deva", "ru_text": "rus_Cyrl"
+        {"hi_text": "hin_Deva", "ne_text": "npi_Deva"
         }
 
     Returns: dict of {output_key: [translated_text, ...]} aligned to `texts`.
@@ -117,22 +117,21 @@ def translate_multi(texts, src_lang, tgt_langs, batch_size=8):
 # Main
 if __name__ == "__main__":
     print("Reading input CSV...")
-    df = pd.read_csv("result/ethics_pilot.csv")
+    df = pd.read_csv("result/ethics_commonsense.csv")
     if "input" in df.columns:
         df = df.rename(columns={"input": "en_text"})
     df["en_text"] = df["en_text"].apply(strip_forum_tags)
     print(f"Loaded {len(df)} rows.")
 
-    print("Translating English → Hindi + Nepali + Russian...")
+    print("Translating English → Hindi + Nepali ...")
     translations = translate_multi(
         df["en_text"].tolist(),
         src_lang="eng_Latn",
-        tgt_langs={"hi_text": "hin_Deva", "ne_text": "npi_Deva", "ru_text": "rus_Cyrl"},
+        tgt_langs={"hi_text": "hin_Deva", "ne_text": "npi_Deva"},
         batch_size=8
     )
     df["hi_text"] = translations["hi_text"]
     df["ne_text"] = translations["ne_text"]
-    df["ru_text"] = translations["ru_text"]
 
     df.to_csv("result/ethics_translated.csv", index=False)
     print("Done!")

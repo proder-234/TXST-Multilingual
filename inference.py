@@ -4,12 +4,9 @@ import csv
 from prompt import LANG_COL, generate_prompt
 from models import query_model
 
-LANG_NAME = {"en": "English", "hi": "Hindi", "ne": "Nepali", "ru": "Russian"}
-
 
 def run(input_csv, output_csv, lang):
     text_col = LANG_COL[lang]
-    target_language = LANG_NAME[lang]
 
     with open(input_csv, newline="", encoding="utf-8") as f_in:
         rows = list(csv.DictReader(f_in))
@@ -20,7 +17,7 @@ def run(input_csv, output_csv, lang):
 
         for i, row in enumerate(rows, 1):
             scenario = row[text_col]
-            prompt = generate_prompt(scenario, target_language)
+            prompt = generate_prompt(scenario, lang)
 
             print(f"[{i}/{len(rows)}] generating...", end=" ", flush=True)
             full_response, score, justification = query_model(prompt)
