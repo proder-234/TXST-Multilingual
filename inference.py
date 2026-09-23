@@ -5,15 +5,11 @@ import traceback
 from prompt import LANG_COL, generate_prompt
 from models import query_model
 
-LANG_NAME = {"en": "English", "hi": "Hindi", "ne": "Nepali"}
-
-# Devanagari costs many more tokens on Mistral, so give hi/ne more room
 MAX_NEW_TOKENS = {"en": 220, "hi": 400, "ne": 400}
 
 
 def run(input_csv, output_csv, lang):
     text_col = LANG_COL[lang]
-    target_language = LANG_NAME[lang]
     max_new_tokens = MAX_NEW_TOKENS.get(lang, 220)
 
     with open(input_csv, newline="", encoding="utf-8") as f_in:
@@ -28,7 +24,7 @@ def run(input_csv, output_csv, lang):
 
         for i, row in enumerate(rows, 1):
             scenario = row[text_col]
-            prompt = generate_prompt(scenario, target_language)
+            prompt = generate_prompt(scenario, lang)
 
             print(f"[{i}/{len(rows)}] generating...", end=" ", flush=True)
 
@@ -69,7 +65,8 @@ def run(input_csv, output_csv, lang):
                 print(f"response={score}")
             else:
                 unparsed += 1
-                print("[!] could not parse a clean 0/1 response")
+                print("[!] could not parse -- raw response was:")
+                print(f"    {full_response!r}")
 
     print(f"Total: {len(rows)} | Errors: {errors} | Unparsed: {unparsed}")
 
@@ -86,3 +83,5 @@ if __name__ == "__main__":
 
     run(args.input_csv, args.output_csv, args.lang)
     print("Done.")
+
+    #caffeinate -i python3 inference.py --lang en
