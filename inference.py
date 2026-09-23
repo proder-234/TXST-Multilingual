@@ -27,7 +27,7 @@ def run(input_csv, output_csv, lang):
 
         for i, row in enumerate(rows, 1):
             scenario = row[text_col]
-            prompt = generate_prompt(scenario, target_language)
+            prompt = generate_prompt(scenario, lang)
 
             print(f"[{i}/{len(rows)}] generating...", end=" ", flush=True)
 
