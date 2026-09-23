@@ -16,6 +16,6 @@ def load_ethics_commonsense(n=None, seed=42):
 
 if __name__ == "__main__":
     df = load_ethics_commonsense(n=None)
-    df.to_csv("result/ethics_pilot.csv", index=False)
+    df.to_csv("result/ethics_commonsense.csv", index=False)
 
     print(f"Saved {len(df)} scenarios")
