@@ -9,3 +9,4 @@ sentencepiece
 safetensors
 tqdm
 numpy
+dotenv

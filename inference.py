@@ -36,7 +36,7 @@ def run(input_csv, output_csv, lang):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_csv", default="ethics_translated.csv")
+    parser.add_argument("--input_csv", default="result/ethics_translated.csv")
     parser.add_argument("--output_csv", default=None)
     parser.add_argument("--lang", default="hi", choices=list(LANG_COL.keys()))
     args = parser.parse_args()
