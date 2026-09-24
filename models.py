@@ -30,7 +30,7 @@ def _parse(full_response):
     return score, justification
 
 
-def query_model(prompt, model_id="llama3.1:8b", max_new_tokens=220, temperature=0.0):
+def query_model(prompt, model_id="llama4:scout", max_new_tokens=220, temperature=0.0):
     prompt_with_prefill = prompt.rstrip() + "\nresponse: "
 
     data = {
