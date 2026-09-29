@@ -17,7 +17,7 @@ def load(path, language):
 
     return df.assign(
         language=language,
-        item_id=df["input_id"]
+        item_id=df["input_id"].astype(int)
     )[["language", "item_id", "prediction"]]
 
 

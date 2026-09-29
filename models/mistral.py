@@ -4,14 +4,14 @@ import torch
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from common import clean, parse
+from .models import clean, parse
 
 load_dotenv()
 huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")
 
 MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.2"
 
-print(f"[models_hf.py] Loading {MODEL_ID}")
+print(f"[models/mistral.py] Loading {MODEL_ID}")
 
 
 def _load_model():

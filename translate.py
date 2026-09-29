@@ -148,18 +148,27 @@ def main():
         nargs="+",
         choices=list(LANGUAGES.keys()),
         default=list(LANGUAGES.keys()),
-        help="Target language code(s) to translate into (space-separated). "
-             "Defaults to every language in the LANGUAGES registry above.",
+        help="Target language code(s) to translate into (space-separated).",
     )
-    parser.add_argument("--src_lang", default="eng_Latn", help="NLLB source language code.")
+    parser.add_argument("--src_lang", default="eng_Latn")
     parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="Load --output_csv if it exists and add/replace only the columns "
+             "for --langs, keeping all other existing translations.",
+    )
     args = parser.parse_args()
 
-    print("Reading input CSV...")
-    df = pd.read_csv(args.input_csv)
-    if "input" in df.columns:
-        df = df.rename(columns={"input": "en_text"})
-    df["en_text"] = df["en_text"].apply(strip_forum_tags)
+    if args.append:
+        print(f"Append mode: reading existing {args.output_csv}...")
+        df = pd.read_csv(args.output_csv)
+    else:
+        print("Reading input CSV...")
+        df = pd.read_csv(args.input_csv)
+        if "input" in df.columns:
+            df = df.rename(columns={"input": "en_text"})
+        df["en_text"] = df["en_text"].apply(strip_forum_tags)
     print(f"Loaded {len(df)} rows.")
 
     tgt_langs = {LANGUAGES[code]["col"]: LANGUAGES[code]["nllb"] for code in args.langs}
@@ -178,7 +187,6 @@ def main():
     df.to_csv(args.output_csv, index=False)
     print("Done!")
     print(f"Saved to {args.output_csv}")
-
 
 if __name__ == "__main__":
     main()

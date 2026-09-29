@@ -1,6 +1,6 @@
 import requests
 
-from models import clean, parse
+from .models import clean, parse
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
